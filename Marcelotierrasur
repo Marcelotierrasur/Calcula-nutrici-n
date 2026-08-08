@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Panel de Nutrición · Triatlón</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#EEF2F0;
+    --surface:#FFFFFF;
+    --ink:#14262A;
+    --ink-soft:#4B5D5F;
+    --line:#CBD5D3;
+
+    --swim:#146E77;
+    --swim-light:#DCEEF0;
+    --bike:#B8622C;
+    --bike-light:#F5E4D6;
+    --run:#4F7942;
+    --run-light:#E3ECDD;
+
+    --accent: var(--swim);
+    --accent-light: var(--swim-light);
+  }
+
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; padding:0; }
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'Inter', sans-serif;
+    padding:28px 20px 60px;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  .wrap{ max-width:920px; margin:0 auto; }
+
+  /* Header */
+  header{ margin-bottom:26px; }
+  .eyebrow{
+    font-family:'JetBrains Mono', monospace;
+    font-size:12px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+    display:flex; align-items:center; gap:8px;
+  }
+  .eyebrow .dot{ width:6px;height:6px;border-radius:50%; background:var(--accent); transition:background .3s; }
+  h1{
+    font-family:'Barlow Condensed', sans-serif;
+    font-weight:700;
+    font-size:44px;
+    line-height:1;
+    margin:6px 0 8px;
+    letter-spacing:-.01em;
+  }
+  header p{
+    font-size:14.5px;
+    color:var(--ink-soft);
+    max-width:560px;
+    line-height:1.5;
+    margin:0;
+  }
+
+  /* Lane tabs */
+  .lanes{
+    display:flex;
+    gap:0;
+    margin:26px 0 22px;
+    border:1px solid var(--line);
+    border-radius:12px;
+    overflow:hidden;
+    background:var(--surface);
+  }
+  .lane-btn{
+    flex:1;
+    position:relative;
+    border:none;
+    background:transparent;
+    padding:14px 10px;
+    font-family:'Barlow Condensed', sans-serif;
+    font-size:19px;
+    font-weight:600;
+    color:var(--ink-soft);
+    cursor:pointer;
+    letter-spacing:.01em;
+    display:flex; align-items:center; justify-content:center; gap:8px;
+    transition:background .25s, color .25s;
+  }
+  .lane-btn:not(:last-child){ border-right:1px solid var(--line); }
+  .lane-btn .rope{
+    position:absolute; bottom:0; left:0; right:0; height:3px;
+    background:transparent; transition:background .25s;
+  }
+  .lane-btn.active{ color:var(--ink); background:var(--accent-light); }
+  .lane-btn.active .rope{ background:var(--accent); }
+  .lane-btn svg{ width:17px; height:17px; opacity:.85; }
+
+  /* Card */
+  .card{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:24px;
+    margin-bottom:20px;
+  }
+  .card h2{
+    font-family:'Barlow Condensed', sans-serif;
+    font-size:22px;
+    font-weight:600;
+    margin:0 0 16px;
+    display:flex; align-items:center; gap:8px;
+  }
+  .card h2 .bar{ width:4px; height:18px; background:var(--accent); border-radius:2px; }
+
+  .grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(160px,1fr));
+    gap:16px;
+  }
+  label{
+    font-size:12.5px;
+    font-weight:600;
+    color:var(--ink-soft);
+    display:block;
+    margin-bottom:6px;
+    text-transform:uppercase;
+    letter-spacing:.04em;
+  }
+  input[type=number], select{
+    width:100%;
+    padding:10px 12px;
+    border:1px solid var(--line);
+    border-radius:8px;
+    font-family:'JetBrains Mono', monospace;
+    font-size:15px;
+    color:var(--ink);
+    background:#FBFCFC;
+    outline:none;
+    transition:border-color .2s;
+  }
+  input[type=number]:focus, select:focus{ border-color:var(--accent); }
+
+  .toggle-row{ display:flex; gap:8px; flex-wrap:wrap; }
+  .toggle{
+    padding:9px 14px;
+    border:1px solid var(--line);
+    border-radius:20px;
+    font-size:13.5px;
+    font-weight:500;
+    background:#FBFCFC;
+    cursor:pointer;
+    color:var(--ink-soft);
+    transition:all .2s;
+  }
+  .toggle.active{
+    background:var(--accent);
+    border-color:var(--accent);
+    color:#fff;
+  }
+
+  /* Timeline results */
+  .timeline{ position:relative; padding-top:6px; }
+  .timeline-line{
+    position:absolute;
+    top:19px; left:0; right:0;
+    height:2px;
+    background:var(--line);
+    z-index:0;
+  }
+  .stages{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:14px;
+    position:relative;
+    z-index:1;
+  }
+  .stage-marker{
+    display:flex; align-items:center; gap:8px; margin-bottom:10px;
+  }
+  .stage-dot{
+    width:14px; height:14px; border-radius:50%;
+    background:var(--accent);
+    border:3px solid var(--bg);
+    box-shadow:0 0 0 1px var(--accent);
+  }
+  .stage-label{
+    font-family:'JetBrains Mono', monospace;
+    font-size:11px; letter-spacing:.1em; text-transform:uppercase;
+    color:var(--ink-soft);
+  }
+  .stage-card{
+    background:var(--accent-light);
+    border-radius:10px;
+    padding:14px 14px 16px;
+    min-height:100px;
+  }
+  .stage-time{
+    font-family:'Barlow Condensed', sans-serif;
+    font-size:15px; font-weight:600;
+    margin:0 0 8px;
+    color:var(--ink);
+  }
+  .stage-list{
+    margin:0; padding:0; list-style:none;
+    font-size:13.5px; line-height:1.65;
+    color:var(--ink);
+  }
+  .stage-list li{ margin-bottom:2px; }
+  .stage-list b{
+    font-family:'JetBrains Mono', monospace;
+    font-weight:700;
+  }
+
+  .note{
+    font-size:12.5px;
+    color:var(--ink-soft);
+    line-height:1.55;
+    margin-top:16px;
+    padding-top:14px;
+    border-top:1px dashed var(--line);
+  }
+
+  .foods{
+    margin-top:14px;
+    font-size:13px;
+    color:var(--ink-soft);
+    line-height:1.6;
+  }
+  .foods b{ color:var(--ink); font-weight:600; }
+
+  footer{
+    text-align:center;
+    font-size:11.5px;
+    color:var(--ink-soft);
+    margin-top:30px;
+    font-family:'JetBrains Mono', monospace;
+    letter-spacing:.03em;
+  }
+
+  @media (max-width:640px){
+    .stages{ grid-template-columns:1fr; }
+    .timeline-line{ display:none; }
+    h1{ font-size:34px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="eyebrow"><span class="dot" id="eyebrowDot"></span><span id="eyebrowText">Natación</span></div>
+    <h1>Panel de nutrición por disciplina</h1>
+    <p>Estimador de ingesta pre, intra y post entrenamiento. Ajustá tu peso, duración e intensidad para cada disciplina y probá los números en tus propios entrenos antes de usarlos en competencia.</p>
+  </header>
+
+  <div class="lanes">
+    <button class="lane-btn active" data-d="swim" id="btnSwim">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 17c1.5 1.5 3 1.5 4.5 0s3-1.5 4.5 0 3 1.5 4.5 0 3-1.5 4.5 0"/><path d="M2 21c1.5 1.5 3 1.5 4.5 0s3-1.5 4.5 0 3 1.5 4.5 0 3-1.5 4.5 0"/><circle cx="17" cy="6" r="2"/><path d="M6 13l4-4 3 2 4-5"/></svg>
+      Natación<span class="rope"></span>
+    </button>
+    <button class="lane-btn" data-d="bike" id="btnBike">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="5.5" cy="17.5" r="3.5"/><circle cx="18.5" cy="17.5" r="3.5"/><path d="M15 6a1 1 0 100-2 1 1 0 000 2zM12 17.5V14l-3-3 4-3 2 3h3"/></svg>
+      Ciclismo<span class="rope"></span>
+    </button>
+    <button class="lane-btn" data-d="run" id="btnRun">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="13" cy="4" r="2"/><path d="M4 17l4-2 2-5 4 2 2 5 4 2M9 10l2-3 3 1"/></svg>
+      Running<span class="rope"></span>
+    </button>
+  </div>
+
+  <div class="card">
+    <h2><span class="bar"></span>Tus datos</h2>
+    <div class="grid">
+      <div>
+        <label for="weight">Peso corporal (kg)</label>
+        <input type="number" id="weight" value="70" min="35" max="150">
+      </div>
+      <div>
+        <label for="duration">Duración (min)</label>
+        <input type="number" id="duration" value="60" min="10" max="720" step="5">
+      </div>
+      <div>
+        <label>Intensidad</label>
+        <div class="toggle-row" id="intensityToggle">
+          <button class="toggle" data-v="baja">Baja</button>
+          <button class="toggle active" data-v="moderada">Moderada</button>
+          <button class="toggle" data-v="alta">Alta</button>
+        </div>
+      </div>
+      <div>
+        <label>Clima</label>
+        <div class="toggle-row" id="climateToggle">
+          <button class="toggle active" data-v="templado">Templado</button>
+          <button class="toggle" data-v="calor">Calor</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2><span class="bar"></span>Tu línea de tiempo nutricional</h2>
+    <div class="timeline">
+      <div class="timeline-line"></div>
+      <div class="stages">
+        <div>
+          <div class="stage-marker"><div class="stage-dot"></div><div class="stage-label">Pre</div></div>
+          <div class="stage-card">
+            <p class="stage-time" id="preTime">3-4h antes</p>
+            <ul class="stage-list" id="preList"></ul>
+          </div>
+        </div>
+        <div>
+          <div class="stage-marker"><div class="stage-dot"></div><div class="stage-label">Intra</div></div>
+          <div class="stage-card">
+            <p class="stage-time" id="intraTime">Durante el esfuerzo</p>
+            <ul class="stage-list" id="intraList"></ul>
+          </div>
+        </div>
+        <div>
+          <div class="stage-marker"><div class="stage-dot"></div><div class="stage-label">Post</div></div>
+          <div class="stage-card">
+            <p class="stage-time" id="postTime">0-60 min después</p>
+            <ul class="stage-list" id="postList"></ul>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="foods" id="foodSuggestions"></div>
+    <div class="note" id="disclaimer"></div>
+  </div>
+
+  <footer>ESTIMACIÓN EDUCATIVA · PROBÁ SIEMPRE EN ENTRENAMIENTO ANTES DE COMPETIR</footer>
+</div>
+
+<script>
+const state = { discipline:'swim', intensity:'moderada', climate:'templado' };
+
+const themes = {
+  swim:{ color:'#146E77', light:'#DCEEF0', label:'Natación' },
+  bike:{ color:'#B8622C', light:'#F5E4D6', label:'Ciclismo' },
+  run:{ color:'#4F7942', light:'#E3ECDD', label:'Running' }
+};
+
+function setTheme(d){
+  const t = themes[d];
+  document.documentElement.style.setProperty('--accent', t.color);
+  document.documentElement.style.setProperty('--accent-light', t.light);
+  document.getElementById('eyebrowText').textContent = t.label;
+  ['Swim','Bike','Run'].forEach(k=>{
+    document.getElementById('btn'+k).classList.remove('active');
+  });
+  const map = {swim:'btnSwim', bike:'btnBike', run:'btnRun'};
+  document.getElementById(map[d]).classList.add('active');
+}
+
+document.querySelectorAll('.lane-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    state.discipline = btn.dataset.d;
+    setTheme(state.discipline);
+    compute();
+  });
+});
+
+document.querySelectorAll('#intensityToggle .toggle').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('#intensityToggle .toggle').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    state.intensity = btn.dataset.v;
+    compute();
+  });
+});
+
+document.querySelectorAll('#climateToggle .toggle').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('#climateToggle .toggle').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    state.climate = btn.dataset.v;
+    compute();
+  });
+});
+
+document.getElementById('weight').addEventListener('input', compute);
+document.getElementById('duration').addEventListener('input', compute);
+
+function round5(n){ return Math.round(n/5)*5; }
+
+function compute(){
+  const weight = parseFloat(document.getElementById('weight').value) || 70;
+  const duration = parseFloat(document.getElementById('duration').value) || 60;
+  const hours = duration/60;
+  const { discipline, intensity, climate } = state;
+
+  const intensityMult = { baja:0.7, moderada:1, alta:1.25 }[intensity];
+
+  // --- PRE ---
+  let preCarbsPerKg;
+  if (duration < 60) preCarbsPerKg = 0.5;
+  else if (duration < 150) preCarbsPerKg = 1.5;
+  else preCarbsPerKg = 2.5;
+  let preCarbs = round5(preCarbsPerKg * weight * (intensityMult>1?1.1:1));
+  let preTiming = duration < 60 ? '1-2h antes (comida ligera)' : '3-4h antes + snack 30-60 min antes';
+
+  // --- INTRA (g de carbohidratos por hora, según disciplina y duración) ---
+  let carbsPerHour = 0;
+  let hydrationPerHour = 0; // ml
+  let sodiumPerHour = 0; // mg
+  let intraNote = '';
+
+  const baseHydration = { swim:600, bike:750, run:650 }[discipline];
+  hydrationPerHour = Math.round(baseHydration * (climate==='calor'?1.3:1) * intensityMult);
+
+  const baseSodium = 500; // mg/h base
+  sodiumPerHour = Math.round(baseSodium * (climate==='calor'?1.6:1) * intensityMult);
+
+  if (discipline === 'swim'){
+    if (duration <= 60){
+      carbsPerHour = 0;
+      intraNote = 'En sesiones de pileta de esta duración no suele ser necesario comer; la hidratación se resuelve entre series.';
+    } else {
+      carbsPerHour = 40;
+      intraNote = 'En aguas abiertas o series muy largas, aprovechá las paradas/avituallamientos para tomar geles o bebida con carbohidratos.';
+    }
+  } else if (discipline === 'bike'){
+    if (duration <= 90) { carbsPerHour = duration<=45?0:30; intraNote='Con menos de 90 min, priorizá la hidratación; los carbohidratos son opcionales.'; }
+    else if (duration <= 150) { carbsPerHour = 60; intraNote='Rango estándar de 60 g/h, repartido en tomas cada 15-20 min.'; }
+    else { carbsPerHour = 90; intraNote='Para tolerar más de 60 g/h necesitás mezclas glucosa-fructosa (2:1) y haber entrenado el intestino progresivamente.'; }
+  } else { // run
+    if (duration <= 60) { carbsPerHour = 0; intraNote='En tiradas cortas alcanza con la carga previa; enfocate en la hidratación.'; }
+    else if (duration <= 150) { carbsPerHour = 45; intraNote='Preferí geles o formas semilíquidas: el impacto de la pisada complica los sólidos.'; }
+    else { carbsPerHour = 75; intraNote='Usá mezclas glucosa-fructosa y combiná con agua para evitar diarrea osmótica por geles muy concentrados.'; }
+  }
+
+  carbsPerHour = Math.round(carbsPerHour * (intensity==='alta'?1.1:1));
+  const totalIntraCarbs = Math.round(carbsPerHour * hours);
+  const totalIntraFluid = Math.round(hydrationPerHour * hours);
+
+  // --- POST ---
+  const postCarbs = round5(1.1 * weight);
+  const postProtein = round5(0.4 * weight);
+  const postRatio = (postCarbs/postProtein).toFixed(1);
+
+  // Render PRE
+  document.getElementById('preTime').textContent = preTiming;
+  document.getElementById('preList').innerHTML = `
+    <li>Carbohidratos: <b>${preCarbs} g</b> totales</li>
+    <li>Bajos en grasa y fibra para vaciado gástrico rápido</li>
+    <li>Hidratación: ~500 ml en la hora previa</li>
+  `;
+
+  // Render INTRA
+  document.getElementById('intraTime').textContent = duration<60 ? 'Esfuerzo corto' : `${hours.toFixed(1)} h de esfuerzo`;
+  document.getElementById('intraList').innerHTML = `
+    <li>Carbohidratos: <b>${carbsPerHour} g/h</b> ${carbsPerHour>0?`(≈ ${totalIntraCarbs} g en total)`:''}</li>
+    <li>Líquido: <b>${hydrationPerHour} ml/h</b> (≈ ${totalIntraFluid} ml en total)</li>
+    <li>Sodio: <b>${sodiumPerHour} mg/h</b></li>
+  `;
+
+  // Render POST
+  document.getElementById('postTime').textContent = '0-60 min después';
+  document.getElementById('postList').innerHTML = `
+    <li>Carbohidratos: <b>${postCarbs} g</b></li>
+    <li>Proteína: <b>${postProtein} g</b></li>
+    <li>Ratio CH:PRO ≈ <b>${postRatio}:1</b></li>
+  `;
+
+  const foodMap = {
+    swim: 'Pre: banana + tostada con miel. Post: yogur griego con avena y fruta, o batido de proteína con leche y banana.',
+    bike: 'Pre: arroz blanco con banana, o pan con mermelada. Intra: geles, barritas, banana, bebida isotónica. Post: pasta o arroz con pollo/atún y vegetales.',
+    run: 'Pre: avena con banana y miel, tostadas con mermelada. Intra: geles diluidos con agua, gomitas energéticas. Post: bowl de arroz con pollo y palta, o batido con leche, banana y avena.'
+  };
+  document.getElementById('foodSuggestions').innerHTML = `<b>Ideas de alimentos — ${themes[discipline].label}:</b><br>${foodMap[discipline]}<br><br><b>Nota sobre esta sesión:</b> ${intraNote}`;
+
+  document.getElementById('disclaimer').textContent = 'Estos valores son un punto de partida basado en guías generales de nutrición deportiva de resistencia. Tu tolerancia digestiva, clima real, sudoración y objetivos pueden cambiar estos números — ajustá siempre en entrenamiento, nunca el día de la competencia.';
+}
+
+setTheme('swim');
+compute();
+</script>
+</body>
+</html>
